@@ -21,23 +21,21 @@ struct AddReasonView: View {
                 TextField("Título do motivo", text: $title)
                 
                 Picker("Tipo", selection: $type) {
-                    ForEach(ReasonType.allCases, id: \.self) {
-                        Text($0.rawValue)
-                    }
+                    ForEach(ReasonType.allCases, id: \.self) { Text($0.rawValue) }
                 }
                 
                 Picker("Frequência", selection: $frequency) {
-                    ForEach(Frequency.allCases, id: \.self) {
-                        Text($0.rawValue)
-                    }
+                    ForEach(Frequency.allCases, id: \.self) { Text($0.rawValue) }
                 }
             }
-            .navigationTitle("Novo motivo")
+            .navigationTitle("Novo Motivo")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Salvar") {
-                        vm.addReason(title: title, type: type, frequency: frequency)
-                        dismiss()
+                        Task {
+                            await vm.addReason(title: title, type: type, frequency: frequency)
+                            dismiss()
+                        }
                     }
                 }
                 ToolbarItem(placement: .cancellationAction) {
@@ -47,3 +45,4 @@ struct AddReasonView: View {
         }
     }
 }
+

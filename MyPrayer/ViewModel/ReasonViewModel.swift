@@ -5,42 +5,68 @@
 //  Created by Guilherme Amaral Dourado on 13/08/25.
 //
 
-import SwiftUI
+import Foundation
+import CloudKit
 
+@MainActor
 class ReasonViewModel: ObservableObject {
     @Published var reasons: [Reason] = []
+    private var database = CKContainer.default().privateCloudDatabase
     
-    func addReason(title: String, type: ReasonType, frequency: Frequency) {
-        let newReason = Reason(
-            id: UUID(),
+    init() {
+        Task {
+            await fetchReasons()
+        }
+    }
+
+    func fetchReasons() async {
+        let predicate = NSPredicate(value: true)
+        let query = CKQuery(recordType: "Reason", predicate: predicate)
+        query.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+        
+        do {
+            let (results, _) = try await database.records(matching: query)
+            reasons = results.compactMap { _, result in
+                switch result {
+                case .success(let record):
+                    return Reason(record: record)
+                case .failure(let error):
+                    print("Erro ao buscar registro: \(error.localizedDescription)")
+                    return nil
+                }
+            }
+        } catch {
+            print("Erro na consulta: \(error.localizedDescription)")
+        }
+    }
+
+    func addReason(title: String, type: ReasonType, frequency: Frequency) async {
+        let reason = Reason(
+            id: CKRecord.ID(),
             title: title,
             type: type,
             notes: nil,
             frequency: frequency,
-            deadline: nil,
             status: .pending,
             createdAt: Date()
         )
-        reasons.append(newReason)
-    }
-    
-    func updatePrayer(id: UUID, status: ReasonStatus, notes: String) {
-        if let index = reasons.firstIndex(where: { $0.id == id }) {
-            reasons[index].status = status
-            reasons[index].notes = notes
-
-            if status == .answered {
-                var aux = reasons[index].notes ?? ""
-                aux += "\n✅ Respondida em \(formattedDate(Date()))"
-                reasons[index].notes = aux
-            }
+        
+        do {
+            let _ = try await database.save(reason.toRecord())
+            reasons.insert(reason, at: 0)
+        } catch {
+            print("Erro ao salvar: \(error.localizedDescription)")
         }
     }
-    
-    private func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        return formatter.string(from: date)
-    }
 
+    func updateReason(_ reason: Reason) async {
+        do {
+            let _ = try await database.save(reason.toRecord())
+            if let index = reasons.firstIndex(where: { $0.id == reason.id }) {
+                reasons[index] = reason
+            }
+        } catch {
+            print("Erro ao atualizar: \(error.localizedDescription)")
+        }
+    }
 }

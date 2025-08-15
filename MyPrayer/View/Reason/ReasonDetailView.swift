@@ -49,8 +49,10 @@ struct ReasonDetailView: View {
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Salvar") {
-                    vm.updatePrayer(id: reason.id, status: status, notes: notes)
-                    dismiss()
+                    Task {
+                        await vm.updateReason(self.reason)
+                        dismiss()
+                    }
                 }
             }
         }

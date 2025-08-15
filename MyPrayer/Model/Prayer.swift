@@ -7,7 +7,7 @@
 
 import UIKit
 
-struct Prayer: Identifiable, Codable {
+struct Prayer: Identifiable {
     var id: UUID
     var title: String
     var reasons: [Reason]
