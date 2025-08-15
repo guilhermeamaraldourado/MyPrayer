@@ -10,23 +10,24 @@ import SwiftData
 
 @main
 struct MyPrayerApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    @StateObject private var vm = ReasonViewModel()
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            TabView {
+                PrayerListView()
+                    .tabItem {
+                        Label("Orações", systemImage: "icloud.and.arrow.up")
+                    }
+                ReasonListView(vm: vm)
+                    .tabItem {
+                        Label("Motivos", systemImage: "arrow.trianglehead.2.clockwise.rotate.90.icloud")
+                    }
+                AnsweredReasonsView(vm: vm)
+                    .tabItem {
+                        Label("Respondidas", systemImage: "icloud.and.arrow.down")
+                    }
+            }
         }
-        .modelContainer(sharedModelContainer)
     }
 }
