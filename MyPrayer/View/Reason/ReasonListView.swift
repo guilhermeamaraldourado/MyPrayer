@@ -9,7 +9,9 @@ import SwiftUI
 
 struct ReasonListView: View {
     @ObservedObject var vm: ReasonViewModel
+    @StateObject private var contactsVM = ContactsViewModel()
     @State private var showingAddReason = false
+    @State private var showingContacts = false
     
     var body: some View {
         NavigationView {
@@ -30,11 +32,27 @@ struct ReasonListView: View {
             .navigationTitle("Meus motivos")
             .toolbar {
                 Button(action: { showingAddReason.toggle() }) {
-                    Image(systemName: "plus")
+                    Image(systemName: "plus.message")
+                }
+                Button(action: { showingContacts.toggle() }) {
+                    Image(systemName: "person.fill.badge.plus")
                 }
             }
             .sheet(isPresented: $showingAddReason) {
                 AddReasonView(vm: vm)
+            }
+            .sheet(isPresented: $showingContacts) {
+                ContactSelectionView(contactsVM: contactsVM) { selectedContacts in
+                    Task {
+                        for contact in selectedContacts {
+                            await vm.addReason(
+                                title: "\(contact.givenName) \(contact.familyName)",
+                                type: .request,
+                                frequency: .daily
+                            )
+                        }
+                    }
+                }
             }
         }
     }
