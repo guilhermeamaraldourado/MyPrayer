@@ -12,11 +12,22 @@ struct ReasonListView: View {
     @StateObject private var contactsVM = ContactsViewModel()
     @State private var showingAddReason = false
     @State private var showingContacts = false
+    @State private var searchText = String()
+    
+    var filteredReasons: [Reason] {
+        if searchText.isEmpty {
+            return vm.reasons
+        } else {
+            return vm.reasons.filter {
+                $0.title.lowercased().contains(searchText.lowercased())
+            }
+        }
+    }
     
     var body: some View {
         NavigationView {
             List {
-                ForEach(vm.reasons.filter { $0.status != .answered }) { reason in
+                ForEach(filteredReasons.filter { $0.status != .answered }) { reason in
                     NavigationLink(destination: ReasonDetailView(
                         reason: reason,
                         vm: vm
@@ -55,6 +66,7 @@ struct ReasonListView: View {
                     }
                 }
             }
+            .searchable(text: $searchText, prompt: "Buscar motivo de oração")
         }
     }
     
