@@ -50,11 +50,29 @@ struct ReasonDetailView: View {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Salvar") {
                     Task {
-                        await vm.updateReason(self.reason)
+                        await vm.updateReason(getUpdatedReason())
                         dismiss()
                     }
                 }
             }
         }
     }
+    
+    func getUpdatedReason() -> Reason {
+        var updatedReason = reason
+        updatedReason.status = status
+        if status == .answered {
+            var aux = notes
+            aux += "\n✅ Respondida em \(formattedDate(Date()))"
+            notes = aux
+        }
+        updatedReason.notes = notes
+        return updatedReason
+    }
+    
+    private func formattedDate(_ date: Date) -> String {
+         let formatter = DateFormatter()
+         formatter.dateStyle = .short
+         return formatter.string(from: date)
+     }
 }

@@ -12,6 +12,7 @@ import CloudKit
 class ReasonViewModel: ObservableObject {
     @Published var reasons: [Reason] = []
     private var database = CKContainer.default().privateCloudDatabase
+    private var ckRecords: [CKRecord] = []
     
     init() {
         Task {
@@ -29,6 +30,7 @@ class ReasonViewModel: ObservableObject {
             reasons = results.compactMap { _, result in
                 switch result {
                 case .success(let record):
+                    ckRecords.append(record)
                     return Reason(record: record)
                 case .failure(let error):
                     print("Erro ao buscar registro: \(error.localizedDescription)")
@@ -61,7 +63,14 @@ class ReasonViewModel: ObservableObject {
 
     func updateReason(_ reason: Reason) async {
         do {
-            let _ = try await database.save(reason.toRecord())
+            guard let record = ckRecords.first(where: { $0.recordID == reason.id }) else { return }
+            record["title"] = reason.title as CKRecordValue
+            record["type"] = reason.type.rawValue as CKRecordValue
+            record["notes"] = reason.notes as CKRecordValue?
+            record["frequency"] = reason.frequency.rawValue as CKRecordValue
+            record["status"] = reason.status.rawValue as CKRecordValue
+            record["createdAt"] = reason.createdAt as CKRecordValue
+            let _ = try await database.save(record)
             if let index = reasons.firstIndex(where: { $0.id == reason.id }) {
                 reasons[index] = reason
             }
@@ -70,10 +79,11 @@ class ReasonViewModel: ObservableObject {
         }
     }
     
-    func deleteReasonAt(index: Int) async {
+    func deleteReason(with id: CKRecord.ID) async {
         do {
-            let _ = try await database.deleteRecord(withID: reasons[index].id)
-            reasons.remove(at: index)
+            let _ = try await database.deleteRecord(withID: id)
+            reasons.removeAll(where: { $0.id == id })
+            ckRecords.removeAll(where: { $0.recordID == id })
         } catch {
             print("Erro ao deletar: \(error.localizedDescription)")
         }

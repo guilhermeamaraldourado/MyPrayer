@@ -28,10 +28,7 @@ struct ReasonListView: View {
         NavigationView {
             List {
                 ForEach(filteredReasons.filter { $0.status != .answered }) { reason in
-                    NavigationLink(destination: ReasonDetailView(
-                        reason: reason,
-                        vm: vm
-                    )) {
+                    NavigationLink(destination: ReasonDetailView(reason: reason, vm: vm)) {
                         VStack(alignment: .leading) {
                             Text(reason.title).font(.headline)
                             Text(reason.type.rawValue).font(.subheadline)
@@ -43,12 +40,8 @@ struct ReasonListView: View {
             }
             .navigationTitle("Meus motivos")
             .toolbar {
-                Button(action: { showingAddReason.toggle() }) {
-                    Image(systemName: "plus.message")
-                }
-                Button(action: { showingContacts.toggle() }) {
-                    Image(systemName: "person.fill.badge.plus")
-                }
+                Button(action: { showingAddReason.toggle() }) { Image(systemName: "plus.message") }
+                Button(action: { showingContacts.toggle() }) { Image(systemName: "person.fill.badge.plus") }
             }
             .sheet(isPresented: $showingAddReason) {
                 AddReasonView(vm: vm)
@@ -69,13 +62,13 @@ struct ReasonListView: View {
             .searchable(text: $searchText, prompt: "Buscar motivo de oração")
         }
     }
-    
-    func delete(at offsets: IndexSet) {
-        guard let index = offsets.first else {
-            return
-        }
-        Task {
-            await vm.deleteReasonAt(index: index)
+
+    func delete(at indexSet: IndexSet) {
+        let ids = indexSet.compactMap { filteredReasons.filter { $0.status != .answered }[$0].id }
+        ids.forEach { id in
+            Task {
+                await vm.deleteReason(with: id)
+            }
         }
     }
 }
