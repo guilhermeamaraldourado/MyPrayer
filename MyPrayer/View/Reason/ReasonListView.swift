@@ -28,6 +28,7 @@ struct ReasonListView: View {
                         }
                     }
                 }
+                .onDelete(perform: delete)
             }
             .navigationTitle("Meus motivos")
             .toolbar {
@@ -54,6 +55,15 @@ struct ReasonListView: View {
                     }
                 }
             }
+        }
+    }
+    
+    func delete(at offsets: IndexSet) {
+        guard let index = offsets.first else {
+            return
+        }
+        Task {
+            await vm.deleteReasonAt(index: index)
         }
     }
 }

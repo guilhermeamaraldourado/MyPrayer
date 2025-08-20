@@ -69,4 +69,13 @@ class ReasonViewModel: ObservableObject {
             print("Erro ao atualizar: \(error.localizedDescription)")
         }
     }
+    
+    func deleteReasonAt(index: Int) async {
+        do {
+            let _ = try await database.deleteRecord(withID: reasons[index].id)
+            reasons.remove(at: index)
+        } catch {
+            print("Erro ao deletar: \(error.localizedDescription)")
+        }
+    }
 }
