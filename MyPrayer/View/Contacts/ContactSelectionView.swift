@@ -117,6 +117,5 @@ struct ContactSelectionView: View {
     }
 }
 #Preview {
-    let vm = ContactsViewModel()
     ContactSelectionView(contactsVM: ContactsViewModel(), onAdd: {_ in })
 }

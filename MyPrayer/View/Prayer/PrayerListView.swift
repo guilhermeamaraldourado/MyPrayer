@@ -9,9 +9,10 @@ import SwiftUI
 
 struct PrayerListView: View {
     @StateObject private var vm = PrayerViewModel()
-    
+    @ObservedObject var reasonVM: ReasonViewModel
+
     var body: some View {
-        NavigationView {
+        NavigationSplitView {
             List {
                 ForEach(vm.prayers) { prayer in
                     VStack(alignment: .leading) {
@@ -19,11 +20,35 @@ struct PrayerListView: View {
                     }
                 }
             }
+            .navigationTitle("Minhas orações")
+            .toolbar {
+                ToolbarItem {
+                    Button(action: {
+                        Task {
+                            if let reason = reasonVM.reasons.randomElement() {
+                                await vm.addPrayer(
+                                    title: Date().description,
+                                    reasons: [reason]
+                                )
+                            }
+                        }
+                    }) {
+                        Label("Add Item", systemImage: "plus")
+                    }
+                }
+            }
+            .refreshable {
+                Task {
+                    await vm.fetchPrayers()
+                }
+            }
+        } detail: {
+            Text("Seleciona uma oração na lista para ver os detalhes.")
         }
-        .navigationTitle("Minhas orações")
+
     }
 }
 
 #Preview {
-    PrayerListView()
+    PrayerListView(reasonVM: ReasonViewModel())
 }

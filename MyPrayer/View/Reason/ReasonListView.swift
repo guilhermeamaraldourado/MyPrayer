@@ -25,7 +25,7 @@ struct ReasonListView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationSplitView {
             List {
                 ForEach(filteredReasons.filter { $0.status != .answered }) { reason in
                     NavigationLink(destination: ReasonDetailView(reason: reason, vm: vm)) {
@@ -60,6 +60,13 @@ struct ReasonListView: View {
                 }
             }
             .searchable(text: $searchText, prompt: "Buscar motivo de oração")
+            .refreshable {
+                Task {
+                    await vm.fetchReasons()
+                }
+            }
+        } detail: {
+            Text("Selecione um motivo de oração na lista para ver mais detalhes.")
         }
     }
 

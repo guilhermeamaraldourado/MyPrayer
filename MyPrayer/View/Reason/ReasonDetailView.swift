@@ -19,7 +19,7 @@ struct ReasonDetailView: View {
         self.reason = reason
         self.vm = vm
         _status = State(initialValue: reason.status)
-        _notes = State(initialValue: reason.notes ?? "")
+        _notes = State(initialValue: reason.notes ?? String())
     }
     
     var body: some View {
@@ -54,6 +54,7 @@ struct ReasonDetailView: View {
                         dismiss()
                     }
                 }
+                .disabled(notes == (self.reason.notes ?? String()) && status == self.reason.status)
             }
         }
     }

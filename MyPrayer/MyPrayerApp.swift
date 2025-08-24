@@ -15,7 +15,7 @@ struct MyPrayerApp: App {
     var body: some Scene {
         WindowGroup {
             TabView {
-                PrayerListView()
+                PrayerListView(reasonVM: vm)
                     .tabItem {
                         Label("Orações", systemImage: "icloud.and.arrow.up")
                     }
