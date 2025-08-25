@@ -40,6 +40,32 @@ class PrayerViewModel: ObservableObject {
         }
     }
     
+    func fetchReasons(for prayer: Prayer) async -> [Reason] {
+        guard !prayer.refsReasons.isEmpty else { return [] }
+        
+        var reasons: [Reason] = []
+        await withTaskGroup(of: Reason?.self) { group in
+            for ref in prayer.refsReasons {
+                group.addTask {
+                    do {
+                        let record = try await self.database.record(for: ref.recordID)
+                        return Reason(record: record)
+                    } catch {
+                        print("Erro ao buscar Reason \(ref.recordID): \(error.localizedDescription)")
+                        return nil
+                    }
+                }
+            }
+            
+            for await reason in group {
+                if let reason = reason {
+                    reasons.append(reason)
+                }
+            }
+        }
+        return reasons
+    }
+
     func addPrayer(title: String, reasons: [Reason]) async {
         let refs = reasons.map { CKRecord.Reference(recordID: $0.id, action: .none) }
         let prayer = Prayer(

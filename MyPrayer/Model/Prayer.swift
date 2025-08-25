@@ -26,7 +26,7 @@ struct Prayer: Identifiable {
         id = record.recordID
         title = record["title"] as? String ?? ""
         createdAt = record["createdAt"] as? Date ?? Date()
-        refsReasons = record["reasons"] as? [CKRecord.Reference] ?? []
+        refsReasons = record["idsReasons"] as? [CKRecord.Reference] ?? []
     }
 
     func toRecord() -> CKRecord {

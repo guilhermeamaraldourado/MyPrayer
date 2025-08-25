@@ -15,8 +15,10 @@ struct PrayerListView: View {
         NavigationSplitView {
             List {
                 ForEach(vm.prayers) { prayer in
-                    VStack(alignment: .leading) {
-                        Text(prayer.title).font(.headline)
+                    NavigationLink(destination: PrayerDetailView(prayer: prayer, vm: vm)) {
+                        VStack(alignment: .leading) {
+                            Text(prayer.title).font(.headline)
+                        }
                     }
                 }
             }
@@ -25,12 +27,11 @@ struct PrayerListView: View {
                 ToolbarItem {
                     Button(action: {
                         Task {
-                            if let reason = reasonVM.reasons.randomElement() {
-                                await vm.addPrayer(
-                                    title: Date().description,
-                                    reasons: [reason]
-                                )
-                            }
+                            let reasons = Array(reasonVM.reasons.shuffled().prefix(10))
+                            await vm.addPrayer(
+                                title: Date().description,
+                                reasons: reasons
+                            )
                         }
                     }) {
                         Label("Add Item", systemImage: "plus")
