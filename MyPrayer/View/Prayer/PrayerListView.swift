@@ -13,34 +13,40 @@ struct PrayerListView: View {
 
     var body: some View {
         NavigationSplitView {
-            List {
-                ForEach(vm.prayers) { prayer in
-                    NavigationLink(destination: PrayerDetailView(prayer: prayer, vm: vm)) {
-                        VStack(alignment: .leading) {
-                            Text(prayer.title).font(.headline)
+            if vm.prayers.isEmpty {
+                Spacer()
+                ProgressView("Carregando orações…")
+                Spacer()
+            } else {
+                List {
+                    ForEach(vm.prayers) { prayer in
+                        NavigationLink(destination: PrayerDetailView(prayer: prayer, vm: vm)) {
+                            VStack(alignment: .leading) {
+                                Text(prayer.title).font(.headline)
+                            }
                         }
                     }
                 }
-            }
-            .navigationTitle("Minhas orações")
-            .toolbar {
-                ToolbarItem {
-                    Button(action: {
-                        Task {
-                            let reasons = Array(reasonVM.reasons.shuffled().prefix(10))
-                            await vm.addPrayer(
-                                title: Date().description,
-                                reasons: reasons
-                            )
+                .navigationTitle("Minhas orações")
+                .toolbar {
+                    ToolbarItem {
+                        Button(action: {
+                            Task {
+                                let reasons = Array(reasonVM.reasons.shuffled().prefix(10))
+                                await vm.addPrayer(
+                                    title: Date().description,
+                                    reasons: reasons
+                                )
+                            }
+                        }) {
+                            Label("Add Item", systemImage: "plus")
                         }
-                    }) {
-                        Label("Add Item", systemImage: "plus")
                     }
                 }
-            }
-            .refreshable {
-                Task {
-                    await vm.fetchPrayers()
+                .refreshable {
+                    Task {
+                        await vm.fetchPrayers()
+                    }
                 }
             }
         } detail: {

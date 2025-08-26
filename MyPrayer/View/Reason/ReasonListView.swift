@@ -26,43 +26,51 @@ struct ReasonListView: View {
     
     var body: some View {
         NavigationSplitView {
-            List {
-                ForEach(filteredReasons.filter { $0.status != .answered }) { reason in
-                    NavigationLink(destination: ReasonDetailView(reason: reason, vm: vm)) {
-                        VStack(alignment: .leading) {
-                            Text(reason.title).font(.headline)
-                            Text(reason.type.rawValue).font(.subheadline)
-                                .foregroundColor(.secondary)
+            if vm.reasons.isEmpty {
+                 HStack {
+                     Spacer()
+                     ProgressView("Carregando motivos…")
+                     Spacer()
+                 }
+            } else {
+                List {
+                    ForEach(filteredReasons.filter { $0.status != .answered }) { reason in
+                        NavigationLink(destination: ReasonDetailView(reason: reason, vm: vm)) {
+                            VStack(alignment: .leading) {
+                                Text(reason.title).font(.headline)
+                                Text(reason.type.rawValue).font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    .onDelete(perform: delete)
+                }
+                .navigationTitle("Meus motivos")
+                .toolbar {
+                    Button(action: { showingAddReason.toggle() }) { Image(systemName: "plus.message") }
+                    Button(action: { showingContacts.toggle() }) { Image(systemName: "person.fill.badge.plus") }
+                }
+                .sheet(isPresented: $showingAddReason) {
+                    AddReasonView(vm: vm)
+                }
+                .sheet(isPresented: $showingContacts) {
+                    ContactSelectionView(contactsVM: contactsVM) { selectedContacts in
+                        Task {
+                            for contact in selectedContacts {
+                                await vm.addReason(
+                                    title: "\(contact.givenName) \(contact.familyName)",
+                                    type: .request,
+                                    frequency: .daily
+                                )
+                            }
                         }
                     }
                 }
-                .onDelete(perform: delete)
-            }
-            .navigationTitle("Meus motivos")
-            .toolbar {
-                Button(action: { showingAddReason.toggle() }) { Image(systemName: "plus.message") }
-                Button(action: { showingContacts.toggle() }) { Image(systemName: "person.fill.badge.plus") }
-            }
-            .sheet(isPresented: $showingAddReason) {
-                AddReasonView(vm: vm)
-            }
-            .sheet(isPresented: $showingContacts) {
-                ContactSelectionView(contactsVM: contactsVM) { selectedContacts in
+                .searchable(text: $searchText, prompt: "Buscar motivo de oração")
+                .refreshable {
                     Task {
-                        for contact in selectedContacts {
-                            await vm.addReason(
-                                title: "\(contact.givenName) \(contact.familyName)",
-                                type: .request,
-                                frequency: .daily
-                            )
-                        }
+                        await vm.fetchReasons()
                     }
-                }
-            }
-            .searchable(text: $searchText, prompt: "Buscar motivo de oração")
-            .refreshable {
-                Task {
-                    await vm.fetchReasons()
                 }
             }
         } detail: {

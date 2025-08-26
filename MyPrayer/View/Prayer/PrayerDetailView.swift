@@ -10,6 +10,7 @@ import SwiftUI
 struct PrayerDetailView: View {
     let prayer: Prayer
     @State private var reasons: [Reason] = []
+    @State private var isLoading = true
     @ObservedObject var vm: PrayerViewModel
     @Environment(\.dismiss) var dismiss
     
@@ -26,13 +27,24 @@ struct PrayerDetailView: View {
             }
             
             Section(header: Text("Motivos")) {
-                List {
-                    ForEach(reasons) { reason in
-                        VStack(alignment: .leading) {
-                            Text(reason.title).font(.headline)
-                        }
-                    }
-                }
+                if isLoading {
+                     HStack {
+                         Spacer()
+                         ProgressView("Carregando motivos…")
+                         Spacer()
+                     }
+                 } else if reasons.isEmpty {
+                     Text("Nenhum motivo encontrado")
+                         .foregroundColor(.secondary)
+                 } else {
+                     List {
+                         ForEach(reasons) { reason in
+                             VStack(alignment: .leading) {
+                                 Text(reason.title).font(.headline)
+                             }
+                         }
+                     }
+                 }
             }
         }
         .navigationTitle("Detalhes")
@@ -41,6 +53,7 @@ struct PrayerDetailView: View {
                 let fetched = await vm.fetchReasons(for: self.prayer)
                 await MainActor.run {
                     self.reasons = fetched
+                    self.isLoading = false
                 }
             }
         }
