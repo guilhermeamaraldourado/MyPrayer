@@ -68,3 +68,37 @@ enum ReasonStatus: String, CaseIterable {
     case partial = "Parcialmente atendido"
     case answered = "Atendido"
 }
+
+enum Period: String, CaseIterable, Identifiable {
+    case daily = "dia"
+    case week = "semana"
+    case month = "mês"
+    case year = "ano"
+    
+    var id: String { self.rawValue }
+}
+
+enum Quantity: String, CaseIterable, Identifiable {
+    case one = "uma vez"
+    case two = "duas vezes"
+    case three = "três vezes"
+    case four = "quatro vezes"
+    case five = "cinco vezes"
+    
+    var id: String { self.rawValue }
+    
+    func getValue() -> Int {
+        switch self {
+        case .one:
+            return 1
+        case .two:
+            return 2
+        case .three:
+            return 3
+        case .four:
+            return 4
+        case .five:
+            return 5
+        }
+    }
+}
