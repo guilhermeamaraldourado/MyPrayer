@@ -5,16 +5,18 @@
 //  Created by Guilherme Amaral Dourado on 13/08/25.
 //
 
+import Contacts
 import SwiftUI
 
 struct AddReasonView: View {
     @ObservedObject var vm: ReasonViewModel
+    @StateObject private var contactsVM = ContactsViewModel()
     @Environment(\.dismiss) var dismiss
     
+    @State private var showContacts = false
     @State private var title = ""
     @State private var type: ReasonType = .request
-    @State private var frequency: Frequency = .daily
-    @State private var quantity: Quantity = .one
+    @State private var frequency: Frequency = .one
     @State private var period: Period = .week
     @State private var hasDeadline: Bool = false
     @State private var deadline: Date = Date()
@@ -22,7 +24,7 @@ struct AddReasonView: View {
     var body: some View {
         NavigationView {
             Form {
-                TextField("Título do motivo", text: $title)
+                TextField("Título", text: $title)
                 
                 Picker("Tipo", selection: $type) {
                     ForEach(ReasonType.allCases, id: \.self) { Text($0.rawValue) }
@@ -31,8 +33,8 @@ struct AddReasonView: View {
                 
                 Section(header: Text("Frequência")) {
                     HStack {
-                        Picker("", selection: $quantity) {
-                            ForEach(Quantity.allCases) { q in
+                        Picker("", selection: $frequency) {
+                            ForEach(Frequency.allCases) { q in
                                 Text(q.rawValue)
                                     .tag(q)
                             }
@@ -56,7 +58,7 @@ struct AddReasonView: View {
                         .frame(maxWidth: .infinity, alignment: .trailing)
                         .onChange(of: period) { newValue, _ in
                             if newValue == .daily {
-                                quantity = .one
+                                frequency = .one
                             }
                         }
                     }
@@ -65,8 +67,8 @@ struct AddReasonView: View {
                 }
                 
                 Section(header: Text("Prazo")) {
-                    Toggle("Definir prazo", isOn: $hasDeadline.animation())
-
+                    Toggle("Esse motivo de oração tem data para terminar?", isOn: $hasDeadline.animation())
+                    
                     if hasDeadline {
                         DatePicker(
                             "Selecione a data",
@@ -76,13 +78,35 @@ struct AddReasonView: View {
                         .datePickerStyle(.compact)
                     }
                 }
+                Section(header: Text("Contatos")) {
+                    Text("Se preferir, adicione um ou mais contatos como motivos de oração")
+                    Button(action: {
+                        showContacts.toggle()
+                    }) {
+                        Text("Adicionar")
+                    }
+                }
+            }
+            .sheet(isPresented: $showContacts) {
+                ContactSelectionView(contactsVM: contactsVM) { selectedContacts in
+                    Task {
+                        for contact in selectedContacts {
+                            await vm.addReason(
+                                title: "\(contact.givenName) \(contact.familyName)",
+                                type: .request,
+                                frequency: .one,
+                                period: .week
+                            )
+                        }
+                    }
+                }
             }
             .navigationTitle("Novo Motivo")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Salvar") {
                         Task {
-                            await vm.addReason(title: title, type: type, frequency: frequency)
+                            await vm.addReason(title: title, type: type, frequency: frequency, period: period)
                             dismiss()
                         }
                     }

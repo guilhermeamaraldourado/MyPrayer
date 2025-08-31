@@ -11,6 +11,7 @@ import CloudKit
 @MainActor
 class PrayerViewModel: ObservableObject {
     @Published var prayers: [Prayer] = []
+    @Published var error = false
     private var database = CKContainer.default().privateCloudDatabase
     
     init() {
@@ -32,11 +33,13 @@ class PrayerViewModel: ObservableObject {
                     return Prayer(record: record)
                 case .failure(let error):
                     print("Erro ao buscar registro: \(error.localizedDescription)")
+                    self.error = true
                     return nil
                 }
             }
         } catch {
             print("Erro na consulta: \(error.localizedDescription)")
+            self.error = true
         }
     }
     

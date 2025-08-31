@@ -14,16 +14,18 @@ struct Reason: Identifiable {
     var type: ReasonType
     var notes: String?
     var frequency: Frequency
+    var period: Period
     var deadline: Date?
     var status: ReasonStatus
     var createdAt: Date
     
-    init(id: CKRecord.ID, title: String, type: ReasonType, notes: String? = nil, frequency: Frequency, deadline: Date? = nil, status: ReasonStatus, createdAt: Date) {
+    init(id: CKRecord.ID, title: String, type: ReasonType, notes: String? = nil, frequency: Frequency, period: Period, deadline: Date? = nil, status: ReasonStatus, createdAt: Date) {
         self.id = id
         self.title = title
         self.type = type
         self.notes = notes
         self.frequency = frequency
+        self.period = period
         self.deadline = deadline
         self.status = status
         self.createdAt = createdAt
@@ -34,7 +36,8 @@ struct Reason: Identifiable {
         title = record["title"] as? String ?? ""
         type = ReasonType(rawValue: record["type"] as? String ?? "") ?? .request
         notes = record["notes"] as? String
-        frequency = Frequency(rawValue: record["frequency"] as? String ?? "") ?? .daily
+        frequency = Frequency(rawValue: record["frequency"] as? String ?? "") ?? .one
+        period = Period(rawValue: record["period"] as? String ?? "") ?? .week
         status = ReasonStatus(rawValue: record["status"] as? String ?? "") ?? .pending
         createdAt = record["createdAt"] as? Date ?? Date()
     }
@@ -44,7 +47,8 @@ struct Reason: Identifiable {
         record["title"] = title as CKRecordValue
         record["type"] = type.rawValue as CKRecordValue
         record["notes"] = notes as CKRecordValue?
-        record["frequency"] = frequency.rawValue as CKRecordValue
+        record["frequency"] = frequency.getValue() as CKRecordValue
+        record["period"] = period.rawValue as CKRecordValue
         record["status"] = status.rawValue as CKRecordValue
         record["createdAt"] = createdAt as CKRecordValue
         return record
@@ -55,12 +59,6 @@ enum ReasonType: String, CaseIterable {
     case request = "Pedido"
     case gratitude = "Gratidão"
     case worship = "Adoração"
-}
-
-enum Frequency: String, CaseIterable {
-    case daily = "Diário"
-    case weekly = "Semanal"
-    case monthly = "Mensal"
 }
 
 enum ReasonStatus: String, CaseIterable {
@@ -78,7 +76,7 @@ enum Period: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
 }
 
-enum Quantity: String, CaseIterable, Identifiable {
+enum Frequency: String, CaseIterable, Identifiable {
     case one = "uma vez"
     case two = "duas vezes"
     case three = "três vezes"
@@ -100,5 +98,19 @@ enum Quantity: String, CaseIterable, Identifiable {
         case .five:
             return 5
         }
+    }
+}
+
+extension Reason {
+    static func dummy() -> Self {
+        return .init(
+            id: CKRecord.ID.init(recordName: "123"),
+            title: "Dummy-Reason",
+            type: .request,
+            frequency: .one,
+            period: .week,
+            status: .pending,
+            createdAt: Date()
+        )
     }
 }

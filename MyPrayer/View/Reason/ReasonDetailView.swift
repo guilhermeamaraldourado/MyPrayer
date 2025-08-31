@@ -28,7 +28,7 @@ struct ReasonDetailView: View {
                 Text(reason.title)
                     .font(.headline)
                 Text("Tipo: \(reason.type.rawValue)")
-                Text("Frequência: \(reason.frequency.rawValue)")
+                Text("Frequência: \(getFrequency())")
             }
             
             Section(header: Text("Notas")) {
@@ -37,12 +37,13 @@ struct ReasonDetailView: View {
             }
             
             Section(header: Text("Status")) {
-                Picker("Status", selection: $status) {
+                Picker("", selection: $status) {
                     ForEach(ReasonStatus.allCases, id: \.self) { status in
                         Text(status.rawValue).tag(status)
                     }
                 }
-                .pickerStyle(.segmented)
+                .pickerStyle(.inline)
+                .labelsHidden()
             }
         }
         .navigationTitle("Detalhes")
@@ -57,6 +58,14 @@ struct ReasonDetailView: View {
                 .disabled(notes == (self.reason.notes ?? String()) && status == self.reason.status)
             }
         }
+    }
+    
+    func getFrequency() -> String {
+        if reason.period == .daily {
+            return "Diariamente"
+        }
+        
+        return "\(reason.frequency.rawValue) por \(reason.period.rawValue)"
     }
     
     func getUpdatedReason() -> Reason {
@@ -76,4 +85,8 @@ struct ReasonDetailView: View {
          formatter.dateStyle = .short
          return formatter.string(from: date)
      }
+}
+
+#Preview {
+    ReasonDetailView(reason: Reason.dummy(), vm: ReasonViewModel())
 }

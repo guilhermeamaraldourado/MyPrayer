@@ -10,6 +10,7 @@ import CloudKit
 
 @MainActor
 class ReasonViewModel: ObservableObject {
+    @Published var error = false
     @Published var reasons: [Reason] = []
     private var database = CKContainer.default().privateCloudDatabase
     private var ckRecords: [CKRecord] = []
@@ -34,21 +35,24 @@ class ReasonViewModel: ObservableObject {
                     return Reason(record: record)
                 case .failure(let error):
                     print("Erro ao buscar registro: \(error.localizedDescription)")
+                    self.error = true
                     return nil
                 }
             }
         } catch {
             print("Erro na consulta: \(error.localizedDescription)")
+            self.error = true
         }
     }
 
-    func addReason(title: String, type: ReasonType, frequency: Frequency) async {
+    func addReason(title: String, type: ReasonType, frequency: Frequency, period: Period) async {
         let reason = Reason(
             id: CKRecord.ID(),
             title: title,
             type: type,
             notes: nil,
             frequency: frequency,
+            period: period,
             status: .pending,
             createdAt: Date()
         )
@@ -67,7 +71,8 @@ class ReasonViewModel: ObservableObject {
             record["title"] = reason.title as CKRecordValue
             record["type"] = reason.type.rawValue as CKRecordValue
             record["notes"] = reason.notes as CKRecordValue?
-            record["frequency"] = reason.frequency.rawValue as CKRecordValue
+            record["frequency"] = reason.frequency.getValue() as CKRecordValue
+            record["period"] = reason.period.rawValue as CKRecordValue
             record["status"] = reason.status.rawValue as CKRecordValue
             record["createdAt"] = reason.createdAt as CKRecordValue
             let _ = try await database.save(record)

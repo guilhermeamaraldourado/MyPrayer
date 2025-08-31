@@ -13,7 +13,7 @@ struct PrayerListView: View {
 
     var body: some View {
         NavigationSplitView {
-            if vm.prayers.isEmpty {
+            if vm.prayers.isEmpty && vm.error == false {
                 Spacer()
                 ProgressView("Carregando orações…")
                 Spacer()
@@ -27,7 +27,7 @@ struct PrayerListView: View {
                         }
                     }
                 }
-                .navigationTitle("Minhas orações")
+                .navigationTitle("Orações")
                 .toolbar {
                     ToolbarItem {
                         Button(action: {

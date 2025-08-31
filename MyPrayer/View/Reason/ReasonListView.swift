@@ -26,7 +26,7 @@ struct ReasonListView: View {
     
     var body: some View {
         NavigationSplitView {
-            if vm.reasons.isEmpty {
+            if vm.reasons.isEmpty && vm.error == false {
                  HStack {
                      Spacer()
                      ProgressView("Carregando motivos…")
@@ -45,26 +45,12 @@ struct ReasonListView: View {
                     }
                     .onDelete(perform: delete)
                 }
-                .navigationTitle("Meus motivos")
+                .navigationTitle("Motivos de oração")
                 .toolbar {
-                    Button(action: { showingAddReason.toggle() }) { Image(systemName: "plus.message") }
-                    Button(action: { showingContacts.toggle() }) { Image(systemName: "person.fill.badge.plus") }
+                    Button(action: { showingAddReason.toggle() }) { Image(systemName: "plus") }
                 }
                 .sheet(isPresented: $showingAddReason) {
                     AddReasonView(vm: vm)
-                }
-                .sheet(isPresented: $showingContacts) {
-                    ContactSelectionView(contactsVM: contactsVM) { selectedContacts in
-                        Task {
-                            for contact in selectedContacts {
-                                await vm.addReason(
-                                    title: "\(contact.givenName) \(contact.familyName)",
-                                    type: .request,
-                                    frequency: .daily
-                                )
-                            }
-                        }
-                    }
                 }
                 .searchable(text: $searchText, prompt: "Buscar motivo de oração")
                 .refreshable {
